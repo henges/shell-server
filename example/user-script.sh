@@ -1,11 +1,21 @@
 #!/bin/sh
-USER_NAME=$1
-user_get_handler() {
-    echo "hey $USER_NAME"
+request_mode() {
+    echo "CHUNKED"
 }
 
-user_get_request_mode() {
-    echo "CHUNKED"
+request_handler() {
+    case $METHOD in
+        'GET')
+            echo "user_get_handler"
+            ;;
+        'POST')
+            echo "user_post_handler"
+            ;;
+    esac
+}
+
+user_get_handler() {
+    echo "hey bro"
 }
 
 user_post_handler() {

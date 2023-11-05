@@ -56,8 +56,9 @@ handle_options_request() {
     echo "Connection: keep-alive"
 }
 
-handle_get_request_plain() {
-    body=$(user_get_handler)
+handle_request_plain() {
+    request_handler=$(request_handler)
+    body=$($request_handler)
     length=$(echo "$body" | wc -c)
 
     write_default_headers
@@ -99,6 +100,7 @@ write_chunk() {
 
 handle_request_chunked() {
 
+    request_handler=$(request_handler)
     write_default_headers
     echo "Transfer-Encoding: chunked"
     echo "X-Content-Type-Options: nosniff"
@@ -107,7 +109,7 @@ handle_request_chunked() {
     filename="/tmp/application-$(date +%s)-data" 
     touch "$filename"
     # Run a background process for the result
-    user_get_handler > "$filename" 2>&1 &
+    $request_handler > "$filename" 2>&1 &
     handler_pid=$!
     sleep 1
     poll_for_chunks "$handler_pid" "$filename"
@@ -115,41 +117,26 @@ handle_request_chunked() {
     rm "$filename"
 }
 
-handle_get_request() {
+handle_request() {
     mode="default"
-    if command -v user_get_request_mode &> /dev/null; then
-        mode=$(user_get_request_mode)
+    if command -v request_mode &> /dev/null; then
+        mode=$(request_mode)
     fi
     case $mode in
         'CHUNKED')
-            handle_request_chunked
+            handle_request_chunked 
             ;;
         *)
-            handle_get_request_plain
+            handle_request_plain
             ;;
     esac
-}
-
-# TODO: it's almost identical to the plain get handler.
-# We can DRY this up probably.
-handle_post_request() {
-    body=$(user_post_handler)
-    length=$(echo "$body" | wc -c)
-
-    write_default_headers
-    echo "Content-Length: $length"
-    echo
-    echo "$body"
 }
 
 case $METHOD in
     'OPTIONS')
         handle_options_request
         ;;
-    'GET')
-        handle_get_request
-        ;;
-    'POST')
-        handle_post_request
+    *)
+        handle_request
         ;;
 esac
