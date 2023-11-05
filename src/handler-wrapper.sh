@@ -30,11 +30,9 @@ write_ac_headers() {
 
 write_default_get_headers() {
 
-    content_type=$1||"text/plain"
-    
     echo "HTTP/1.1 200 OK"
     echo "Connection: close"
-    echo "Content-Type: $content_type"
+    echo "Content-Type: text/plain"
     write_ac_headers
 }
 
@@ -88,7 +86,7 @@ write_chunk() {
 
 handle_get_request_chunked() {
 
-    write_default_get_headers "text/event-stream"
+    write_default_get_headers
     echo "Transfer-Encoding: chunked"
     echo
     # Create a file that the result will be written to
