@@ -1,15 +1,7 @@
 #! /bin/sh
-# TODO: use getopts here.
-# SERVICE_NAME=$1
-# SEVICE_PORT=$2
-HANDLER_PATH=$1
-shift
-#shift; shift
 HANDLER_ARGS=$@
 
-chmod +x "$HANDLER_PATH"
-
-./register-http-service.sh "shell-server" "8080" "$HANDLER_PATH" "$HANDLER_ARGS"
+./register-http-service.sh "shell-server" "8080" "$HANDLER_ARGS"
 
 inetd
 

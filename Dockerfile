@@ -13,4 +13,4 @@ COPY src/*.sh example/*.sh ./
 
 RUN chmod +x *.sh
 
-ENTRYPOINT ["/bin/sh", "/app/run.sh", "/app/my-script.sh"]
+ENTRYPOINT ["/bin/sh", "/app/run.sh", "alex"]

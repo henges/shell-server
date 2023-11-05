@@ -1,19 +1,38 @@
 #!/bin/sh
+# This should have been called with any arguments to the user's script
+source /app/user-script.sh "$@"
 # Request parsing based on:
 # https://gist.github.com/robspassky/1959319
 read request
 export METHOD=$(echo "$request" | cut -f 1 -d ' ')
 
+has_body=1
 while /bin/true; do
-        read header
-        [ "$header" = "$(printf '\r')" ] && break
-        header_name=$(echo "$header" | cut -f 1 -d ':')
-        case "$header_name" in
-            'Origin')
-                origin=$(echo "$header" | cut -f 2- -d ':' | tr -d ' ')
-                ;;
-        esac
+    read header
+    [ "$header" = "$(printf '\r')" ] && break
+    header_name=$(echo "$header" | cut -f 1 -d ':')
+    case "$header_name" in
+        'Origin')
+            origin=$(echo "$header" | cut -f 2- -d ':' | tr -d ' ')
+            ;;
+        'Content-Length')
+            content_length=$(echo -n "$header" | cut -f 2- -d ':' | tr -d ' ')
+            has_body=0
+            ;;
+    esac
 done
+
+req_body=""
+if test 0 -eq $has_body; then
+    # Weirdly `seq` seems unable to parse the content length
+    # unless you explicitly make it a number like this
+    content_length=$((content_length + 0))
+    for i in $(seq 1 "$content_length"); do
+        read -n 1 char
+        req_body="$req_body$char"
+    done
+fi
+export REQ_BODY="$req_body"
 
 write_ac_headers() {
     # Origin must match the one in the request when auth is being used
@@ -23,7 +42,7 @@ write_ac_headers() {
     echo "Access-Control-Allow-Credentials: true"
 }
 
-write_default_get_headers() {
+write_default_headers() {
 
     echo "HTTP/1.1 200 OK"
     echo "Connection: close"
@@ -37,15 +56,11 @@ handle_options_request() {
     echo "Connection: keep-alive"
 }
 
-handle_get_request() {
-    handler_script=$1
-    shift;
-    handler_args=$@
-
-    body=$(sh "$handler_script" "$handler_args")
+handle_get_request_plain() {
+    body=$(user_get_handler)
     length=$(echo "$body" | wc -c)
 
-    write_default_get_headers
+    write_default_headers
     echo "Content-Length: $length"
     echo
     echo "$body"
@@ -82,12 +97,9 @@ write_chunk() {
     fi
 }
 
-handle_get_request_chunked() {
-    handler_script=$1
-    shift;
-    handler_args=$@
+handle_request_chunked() {
 
-    write_default_get_headers
+    write_default_headers
     echo "Transfer-Encoding: chunked"
     echo "X-Content-Type-Options: nosniff"
     echo
@@ -95,9 +107,49 @@ handle_get_request_chunked() {
     filename="/tmp/application-$(date +%s)-data" 
     touch "$filename"
     # Run a background process for the result
-    sh "$handler_script" "$handler_args" > "$filename" 2>&1 &
+    user_get_handler > "$filename" 2>&1 &
     handler_pid=$!
     sleep 1
     poll_for_chunks "$handler_pid" "$filename"
     printf '\r\n'
+    rm "$filename"
 }
+
+handle_get_request() {
+    mode="default"
+    if command -v user_get_request_mode &> /dev/null; then
+        mode=$(user_get_request_mode)
+    fi
+    case $mode in
+        'CHUNKED')
+            handle_request_chunked
+            ;;
+        *)
+            handle_get_request_plain
+            ;;
+    esac
+}
+
+# TODO: it's almost identical to the plain get handler.
+# We can DRY this up probably.
+handle_post_request() {
+    body=$(user_post_handler)
+    length=$(echo "$body" | wc -c)
+
+    write_default_headers
+    echo "Content-Length: $length"
+    echo
+    echo "$body"
+}
+
+case $METHOD in
+    'OPTIONS')
+        handle_options_request
+        ;;
+    'GET')
+        handle_get_request
+        ;;
+    'POST')
+        handle_post_request
+        ;;
+esac
