@@ -9,8 +9,8 @@ RUN apk add \
     busybox-extras
 RUN apk add nano
 
-COPY src/register-http-service.sh src/handler-wrapper.sh ./
+COPY src/*.sh example/*.sh ./
 
 RUN chmod +x *.sh
 
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/bin/sh", "/app/run.sh", "/app/my-script.sh"]

@@ -1,13 +1,8 @@
 #!/bin/sh
-
-HANDLER_SCRIPT=$1
-shift
-HANDLER_ARGS="$@"
-
 # Request parsing based on:
 # https://gist.github.com/robspassky/1959319
 read request
-method=$(echo "$request" | cut -f 1 -d ' ')
+export METHOD=$(echo "$request" | cut -f 1 -d ' ')
 
 while /bin/true; do
         read header
@@ -43,8 +38,11 @@ handle_options_request() {
 }
 
 handle_get_request() {
+    handler_script=$1
+    shift;
+    handler_args=$@
 
-    body=$(sh "$HANDLER_SCRIPT" "$HANDLER_ARGS")
+    body=$(sh "$handler_script" "$handler_args")
     length=$(echo "$body" | wc -c)
 
     write_default_get_headers
@@ -85,26 +83,21 @@ write_chunk() {
 }
 
 handle_get_request_chunked() {
+    handler_script=$1
+    shift;
+    handler_args=$@
 
     write_default_get_headers
     echo "Transfer-Encoding: chunked"
+    echo "X-Content-Type-Options: nosniff"
     echo
     # Create a file that the result will be written to
     filename="/tmp/application-$(date +%s)-data" 
     touch "$filename"
     # Run a background process for the result
-    sh "$HANDLER_SCRIPT" "$HANDLER_ARGS" > "$filename" 2>&1 &
+    sh "$handler_script" "$handler_args" > "$filename" 2>&1 &
     handler_pid=$!
     sleep 1
     poll_for_chunks "$handler_pid" "$filename"
     printf '\r\n'
 }
-
-case $method in
-    'OPTIONS')
-        handle_options_request
-        ;;
-    'GET')
-        handle_get_request_chunked
-        ;;
-esac

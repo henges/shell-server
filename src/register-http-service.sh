@@ -12,7 +12,7 @@ register_service() {
         echo "$service_definition" >> /etc/services;
     fi
     touch /etc/inetd.conf
-    inetd_definition=$(printf "%s stream tcp nowait root /bin/sh sh %s %s %s\n" "$SERVICE_NAME" "/app/handler_wrapper.sh" "$HANDLER_SCRIPT" "$HANDLER_ARGS") 
+    inetd_definition=$(printf "%s stream tcp nowait root /bin/sh sh %s %s %s\n" "$SERVICE_NAME" "$HANDLER_SCRIPT" "$HANDLER_ARGS") 
     if ! grep -q "$inetd_definition" /etc/inetd.conf; then
         echo "$inetd_definition" >> /etc/inetd.conf;
     fi
