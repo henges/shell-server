@@ -9,8 +9,8 @@ RUN apk add \
     busybox-extras
 RUN apk add nano
 
-COPY src/*.sh example/*.sh ./
+COPY src/*.sh ./
 
 RUN chmod +x *.sh
 
-ENTRYPOINT ["/bin/sh", "/app/run.sh", "alex"]
+ENTRYPOINT ["/app/run.sh"]

@@ -1,6 +1,8 @@
 #!/bin/sh
-# This should have been called with any arguments to the user's script
+# This file should have been called with any arguments to the user's script,
+# so simply proxy them through.
 source /app/user-script.sh "$@"
+
 # Request parsing based on:
 # https://gist.github.com/robspassky/1959319
 read request
@@ -24,7 +26,7 @@ done
 
 req_body=""
 if test 0 -eq $has_body; then
-    # Weirdly `seq` seems unable to parse the content length
+    # `seq` seems unable to parse the content length
     # unless you explicitly make it a number like this
     content_length=$((content_length + 0))
     for i in $(seq 1 "$content_length"); do
@@ -37,7 +39,7 @@ export REQ_BODY="$req_body"
 write_ac_headers() {
     # Origin must match the one in the request when auth is being used
     echo "Access-Control-Allow-Origin: ${origin:-*}"
-    echo "Access-Control-Allow-Methods: GET, OPTIONS"
+    echo "Access-Control-Allow-Methods: GET, POST, OPTIONS"
     echo "Access-Control-Allow-Headers: Content-Type, Authorization"
     echo "Access-Control-Allow-Credentials: true"
 }
@@ -82,7 +84,7 @@ poll_for_chunks() {
         if test 0 -eq "$should_break"; then 
             break;
         fi
-        sleep 1
+        sleep 0.5
     done
     write_chunk
     printf '0\r\n'
@@ -111,7 +113,6 @@ handle_request_chunked() {
     # Run a background process for the result
     $request_handler > "$filename" 2>&1 &
     handler_pid=$!
-    sleep 1
     poll_for_chunks "$handler_pid" "$filename"
     printf '\r\n'
     rm "$filename"

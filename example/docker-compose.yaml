@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  my-sweet-app:
+    image: shell-server
+    container_name: my-sweet-app
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    entrypoint: ["/app/run.sh", "Alex"]
+    volumes:
+      - ./user-script.sh:/app/user-script.sh
+    ports:
+      - 8181:8080

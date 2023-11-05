@@ -1,6 +1,12 @@
 #! /bin/sh
 HANDLER_ARGS=$@
 
+if ! stat "/app/user-script.sh" > /dev/null 2>&1; then
+    echo "ERROR: You need to define a user script to use as a request handler."
+    echo "Please try adding such a file at path /app/user-script.sh (for instance, through a container volume mount) and try again."
+    return 1
+fi
+
 ./register-http-service.sh "shell-server" "8080" "$HANDLER_ARGS"
 
 inetd
