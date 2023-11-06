@@ -1,0 +1,17 @@
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+RUN apk update
+RUN apk add \
+    curl \
+    jq \
+    yq \
+    busybox-extras
+RUN apk add nano
+
+COPY src/*.sh ./
+
+RUN chmod +x *.sh
+
+ENTRYPOINT ["/app/run.sh"]

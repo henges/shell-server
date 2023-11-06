@@ -3,9 +3,7 @@
 name: ci
 
 on:
-  push:
-    branches:
-      - "main"
+  workflow_dispatch: 
 
 jobs:
   docker:
@@ -22,10 +20,19 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
+      - name: Build and push (Alpine)
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: Dockerfile.alpine
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: henges/shell-server:latest
+          tags: henges/shell-server:latest, henges/shell-server:alpine
+      - name: Build and push (Python)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.python
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: henges/shell-server:latest, henges/shell-server:python
