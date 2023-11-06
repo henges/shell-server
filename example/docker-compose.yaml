@@ -6,7 +6,7 @@ services:
     container_name: my-sweet-app
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.alpine
     entrypoint: ["/app/run.sh", "Alex"]
     volumes:
       - ./user-script.sh:/app/user-script.sh

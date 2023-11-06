@@ -11,7 +11,7 @@ This application expects user code to be contained in a file located at `/app/us
 
 > When your `request_handler` is invoked, any output to `stderr` it produces will be written to the response, even before the HTTP headers are written. Most HTTP clients will (rightly) reject this response as malformed, so ensure this section of code is fault-tolerant.
 
-Additionally, chunked encoding may be used to write the response (for example if the script you call is long-running and you want to stream its output to the client). To configure this, define a function named `request_mode` that determines whether a given request should use chunked encoding. This function should return the sentinel value `"CHUNKED"` if so.
+Additionally, chunked encoding or server-sent events may be used to write the response (for example, if the script you call is long-running and you want to stream its output to the client). To configure this, define a function named `request_mode` that determines how a given request should be delivered to the client. This function should return the sentinel value `"CHUNKED"` for chunked encoding or `"SSE"` for server-sent events.
 
 The following variables are available for use in functions within `user-script.sh`:
 - `METHOD`: contains the name of the HTTP method of the current request

@@ -1,7 +1,7 @@
 #!/bin/sh
 USERNAME=$1
 request_mode() {
-    echo "CHUNKED"
+    echo "SSE"
 }
 
 request_handler() {
@@ -18,7 +18,10 @@ request_handler() {
 }
 
 user_get_handler() {
-    echo "Hello, $USERNAME! This is a GET request."
+    for i in $(seq 1 30); do
+        echo "Hello, $USERNAME! This is a GET request. Response: $i"
+        sleep 1
+    done
 }
 
 user_post_handler() {

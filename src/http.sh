@@ -118,6 +118,18 @@ handle_request_chunked() {
     rm "$filename"
 }
 
+handle_request_eventstream() {
+
+    request_handler=$(request_handler)
+    echo "HTTP/1.1 200 OK"
+    echo "Connection: keep-alive"
+    echo "Content-Type: text/event-stream"
+    write_ac_headers
+    $request_handler | while read line; do 
+        printf "data: %s\r\n" "$line" 
+    done
+}
+
 handle_request() {
     mode="default"
     if command -v request_mode &> /dev/null; then
@@ -126,6 +138,9 @@ handle_request() {
     case $mode in
         'CHUNKED')
             handle_request_chunked 
+            ;;
+        'SSE')
+            handle_request_eventstream
             ;;
         *)
             handle_request_plain
