@@ -125,6 +125,7 @@ handle_request_eventstream() {
     echo "Connection: keep-alive"
     echo "Content-Type: text/event-stream"
     write_ac_headers
+    echo
     $request_handler | while read line; do 
         printf "data: %s\r\n" "$line" 
     done
