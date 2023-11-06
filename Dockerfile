@@ -5,6 +5,7 @@ WORKDIR /app
 RUN apk update
 RUN apk add \
     curl \
+    jq \
     yq \
     busybox-extras
 RUN apk add nano
