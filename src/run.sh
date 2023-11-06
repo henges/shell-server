@@ -7,6 +7,8 @@ if ! stat "/app/user-script.sh" > /dev/null 2>&1; then
     return 1
 fi
 
+chmod +x "/app/user-script.sh"
+
 ./register-http-service.sh "shell-server" "8080" "$HANDLER_ARGS"
 
 inetd
