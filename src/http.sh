@@ -127,8 +127,9 @@ handle_request_eventstream() {
     write_ac_headers
     echo
     $request_handler | while read line; do 
-        printf "data: %s\r\n" "$line" 
+        printf "data: %s\n\n" "$line" 
     done
+    printf "event: close\ndata: script complete\n\n"
 }
 
 handle_request() {
